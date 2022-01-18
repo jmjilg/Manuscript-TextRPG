@@ -204,7 +204,7 @@ int main() {
 				cout << "4. 뒤로가기" << endl;
 				cout << "맵을 선택하세요 : ";
 				cin >> iMenu;
-
+				
 				if (cin.fail()) {
 					cin.clear();
 					cin.ignore(1024, '\n');
@@ -252,4 +252,4 @@ int main() {
 		}
 	}
 	return 0;
-}
+}//야호
