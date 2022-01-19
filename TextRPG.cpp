@@ -252,5 +252,4 @@ int main() {
 		}
 	}
 	return 0;
-	cout << "커밋 확인" << endl;
-}
+}//야호
