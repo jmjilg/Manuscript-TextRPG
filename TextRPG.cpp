@@ -4,6 +4,15 @@
 
 using namespace std;
 
+/*
+170707 숙제
+1. 무기상점에서 판매할 아이템 목록을 만들어주고 해당 목록을 출력해준다.
+2. 출력할때 앞에 번호를 부여해주고 번호를 입력받아서 해당 번호의 아이템을
+구입하세 해준다. 가장 마지막 번호에 뒤로가기 기능을 만든다.
+단, 가방이 꽉 찼거나 돈이 부족할 경우 구매하지 못하게 한다.
+3. 가방을 선택하면 가방안의 아이템을 보여준다.
+*/
+
 enum MAIN_MENU
 {
 	MM_NONE,
@@ -38,11 +47,45 @@ enum BATTLE
 	BATTLE_BACK
 };
 
+enum ITEM_TYPE
+{
+	IT_NONE,
+	IT_WEAPON,
+	IT_ARMOR,
+	IT_BACK
+};
+
+enum STORE_MENU
+{
+	SM_NONE,
+	SM_WEAPON,
+	SM_ARMOR,
+	SM_BACK
+};
+
 #define NAME_SIZE	32
+#define ITEM_DESC_LENGTH	512
+#define INVENTORY_MAX		20
+#define STORE_WEAPON_MAX	3
+#define STORE_ARMOR_MAX		3
+
+struct _tagItem
+{
+	char	strName[NAME_SIZE];
+	char	strTypeName[NAME_SIZE];
+	ITEM_TYPE	eType;
+	int		iMin;
+	int		iMax;
+	int		iPrice;
+	int		iSell;
+	char	strDesc[ITEM_DESC_LENGTH];
+};
 
 struct _tagInventory
 {
-	int		iGold;
+	_tagItem	tItem[INVENTORY_MAX];
+	int			iItemCount;
+	int			iGold;
 };
 
 struct _tagPlayer
@@ -203,6 +246,12 @@ int main()
 	tMonsterArr[2].iExp = 30000;
 	tMonsterArr[2].iGoldMin = 20000;
 	tMonsterArr[2].iGoldMax = 50000;
+
+	// 상점에서 판매할 아이템 목록을 생성한다.
+	_tagItem	tStoreWeapon[STORE_WEAPON_MAX] = {};
+	_tagItem	tStoreArmor[STORE_ARMOR_MAX] = {};
+
+	// 각 아이템 정보들을 설정해준다.
 
 	while (true)
 	{
@@ -403,6 +452,43 @@ int main()
 			}
 			break;
 		case MM_STORE:
+			while (true)
+			{
+				system("cls");
+				cout << "***************************** 상점 *****************************" << endl;
+				cout << "1. 무기상점" << endl;
+				cout << "2. 방어구상점" << endl;
+				cout << "3. 뒤로가기" << endl;
+				cout << "상점을 선택하세요 : ";
+				cin >> iMenu;
+
+				if (cin.fail())
+				{
+					cin.clear();
+					cin.ignore(1024, '\n');
+					continue;
+				}
+
+				else if (iMenu == SM_BACK)
+					break;
+
+				switch (iMenu)
+				{
+				case SM_WEAPON:
+					while (true)
+					{
+						system("cls");
+
+						cout << "***************************** 무기상점 *****************************" << endl;
+						// 판매 목록을 보여준다.
+					}
+					break;
+				case SM_ARMOR:
+					break;
+				case SM_BACK:
+					break;
+				}
+			}
 			break;
 		case MM_INVENTORY:
 			break;
