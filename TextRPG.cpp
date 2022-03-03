@@ -402,11 +402,50 @@ int main()
 						tPlayer.strJobName << endl;
 					cout << "레벨 : " << tPlayer.iLevel << "\t경험치 : " <<
 						tPlayer.iExp << endl;
-					cout << "공격력 : " << tPlayer.iAttackMin << " - " <<
-						tPlayer.iAttackMax << "\t방어력 : " << tPlayer.iArmorMin <<
-						" - " << tPlayer.iArmorMax << endl;
+
+					// 무기를 장착하고 있을 경우 공격력에 무기공격력을 추가하여 출력한다.
+					if (tPlayer.bEquip[EQ_WEAPON] == true)
+					{
+						cout << "공격력 : " << tPlayer.iAttackMin << " + " <<
+							tPlayer.tEquip[EQ_WEAPON].iMin << " - " <<
+							tPlayer.iAttackMax << " + " << tPlayer.tEquip[EQ_WEAPON].iMax;
+					}
+
+					else
+					{
+						cout << "공격력 : " << tPlayer.iAttackMin << " - " <<
+							tPlayer.iAttackMax;
+					}
+
+					// 방어구를 장착하고 있을 경우 방어력에 방어구 방어력을 추가하여 출력한다.
+					if (tPlayer.bEquip[EQ_ARMOR] == true)
+					{
+						cout << "\t방어력 : " << tPlayer.iArmorMin << " + " <<
+							tPlayer.tEquip[EQ_ARMOR].iMin << " - " <<
+							tPlayer.iArmorMax << " + " << tPlayer.tEquip[EQ_ARMOR].iMax << endl;
+					}
+
+					else
+					{
+						cout << "방어력 : " << tPlayer.iArmorMin << " - " <<
+							tPlayer.iArmorMax << endl;;
+					}
+
 					cout << "체력 : " << tPlayer.iHP << " / " << tPlayer.iHPMax <<
 						"\t마나 : " << tPlayer.iMP << " / " << tPlayer.iMPMax << endl;
+
+					if (tPlayer.bEquip[EQ_WEAPON])
+						cout << "장착무기 : " << tPlayer.tEquip[EQ_WEAPON].strName;
+
+					else
+						cout << "장착무기 : 없음";
+
+					if (tPlayer.bEquip[EQ_ARMOR])
+						cout << "\t장착방어구 : " << tPlayer.tEquip[EQ_ARMOR].strName << endl;
+
+					else
+						cout << "\t장착방어구 : 없음" << endl;
+
 					cout << "보유골드 : " << tPlayer.tInventory.iGold << " Gold" << endl << endl;
 
 					//몬스터 정보 출력
@@ -444,8 +483,18 @@ int main()
 						//15 - 5 + 1 을 하면 11이 된다. 11로 나눈 나머지는 0~10이
 						// 나오게 되고 여기에 Min값인 5를 더하게 되면
 						// 5 ~ 15 사이로 값이 나오게 되는것이다.
-						int iAttack = rand() % (tPlayer.iAttackMax - tPlayer.iAttackMin+1) +
-							(tPlayer.iAttackMin + 1);
+						int iAttackMin = tPlayer.iAttackMin;
+						int iAttackMax = tPlayer.iAttackMax;
+
+						// 무기를 장착하고 있을 경우 무기와 Min, Max를 더해준다.
+						if (tPlayer.bEquip[EQ_WEAPON])
+						{
+							iAttackMin += tPlayer.tEquip[EQ_WEAPON].iMin;
+							iAttackMax += tPlayer.tEquip[EQ_WEAPON].iMax;
+						}
+
+						int iAttack = rand() % (iAttackMax - iAttackMin+1) +
+							iAttackMin;
 						int iArmor = rand() % (tMonster.iArmorMax - tMonster.iArmorMin + 1) +
 							tMonster.iArmorMin;
 
@@ -483,9 +532,19 @@ int main()
 
 						// 몬스터가 살아있다면 플레이어를 공격한다.
 						iAttack = rand() % (tMonster.iAttackMax - tMonster.iAttackMin + 1) +
-							(tMonster.iAttackMin + 1);
-						iArmor = rand() % (tPlayer.iArmorMax - tPlayer.iArmorMin + 1) +
-							tPlayer.iArmorMin;
+							tMonster.iAttackMin;
+						
+						int iArmorMin = tPlayer.iArmorMin;
+						int iArmorMax = tPlayer.iArmorMax;
+
+						if (tPlayer.bEquip[EQ_ARMOR])
+						{
+							iArmorMin += tPlayer.tEquip[EQ_ARMOR].iMin;
+							iArmorMax += tPlayer.tEquip[EQ_ARMOR].iMax;
+						}
+						
+						iArmor = rand() % (iArmorMax - iArmorMin + 1) +
+							iArmorMin;
 
 						iDamage = iAttack - iArmor;
 						// 삼항연산자 : 조건식 ? true일때값 : false일때값;
@@ -558,7 +617,7 @@ int main()
 						// 판매 목록을 보여준다.
 						for (int i = 0; i < STORE_WEAPON_MAX; ++i)
 						{
-							cout << i + i << ". 이름 : " << tStoreWeapon[i].strName <<
+							cout << i + 1 << ". 이름 : " << tStoreWeapon[i].strName <<
 								"\t종류 : " << tStoreWeapon[i].strTypeName << endl;
 							cout << "공격력 : " << tStoreWeapon[i].iMin << " - " <<
 								tStoreWeapon[i].iMax << endl;
@@ -632,7 +691,7 @@ int main()
 						// 판매 목록을 보여준다.
 						for (int i = 0; i < STORE_ARMOR_MAX; ++i)
 						{
-							cout << i + i << ". 이름 : " << tStoreArmor[i].strName <<
+							cout << i + 1 << ". 이름 : " << tStoreArmor[i].strName <<
 								"\t종류 : " << tStoreArmor[i].strTypeName << endl;
 							cout << "공격력 : " << tStoreArmor[i].iMin << " - " <<
 								tStoreArmor[i].iMax << endl;
@@ -710,16 +769,55 @@ int main()
 					tPlayer.strJobName << endl;
 				cout << "레벨 : " << tPlayer.iLevel << "\t경험치 : " <<
 					tPlayer.iExp << endl;
-				cout << "공격력 : " << tPlayer.iAttackMin << " - " <<
-					tPlayer.iAttackMax << "\t방어력 : " << tPlayer.iArmorMin <<
-					" - " << tPlayer.iArmorMax << endl;
+				
+				// 무기를 장착하고 있을 경우 공격력에 무기공격력을 추가하여 출력한다.
+				if (tPlayer.bEquip[EQ_WEAPON] == true)
+				{
+					cout << "공격력 : " << tPlayer.iAttackMin << " + " <<
+						tPlayer.tEquip[EQ_WEAPON].iMin << " - " <<
+						tPlayer.iAttackMax << " + " << tPlayer.tEquip[EQ_WEAPON].iMax;
+				}
+
+				else
+				{
+					cout << "공격력 : " << tPlayer.iAttackMin << " - " <<
+						tPlayer.iAttackMax;
+				}
+
+				// 방어구를 장착하고 있을 경우 방어력에 방어구 방어력을 추가하여 출력한다.
+				if (tPlayer.bEquip[EQ_ARMOR] == true)
+				{
+					cout << "\t방어력 : " << tPlayer.iArmorMin << " + " <<
+						tPlayer.tEquip[EQ_ARMOR].iMin << " - " <<
+						tPlayer.iArmorMax << " + " << tPlayer.tEquip[EQ_ARMOR].iMax<<endl;
+				}
+
+				else
+				{
+					cout << "방어력 : " << tPlayer.iArmorMin << " - " <<
+						tPlayer.iArmorMax << endl;;
+				}
+
 				cout << "체력 : " << tPlayer.iHP << " / " << tPlayer.iHPMax <<
 					"\t마나 : " << tPlayer.iMP << " / " << tPlayer.iMPMax << endl;
+
+				if (tPlayer.bEquip[EQ_WEAPON])
+					cout << "장착무기 : " << tPlayer.tEquip[EQ_WEAPON].strName;
+
+				else
+					cout << "장착무기 : 없음";
+
+				if (tPlayer.bEquip[EQ_ARMOR])
+					cout << "\t장착방어구 : " << tPlayer.tEquip[EQ_ARMOR].strName << endl;
+
+				else
+					cout << "\t장착방어구 : 없음" << endl;
+
 				cout << "보유골드 : " << tPlayer.tInventory.iGold << " Gold" << endl << endl;
 
 				for (int i = 0; i < tPlayer.tInventory.iItemCount; ++i)
 				{
-					cout << i + i << ". 이름 : " << tPlayer.tInventory.tItem[i].strName <<
+					cout << i + 1 << ". 이름 : " << tPlayer.tInventory.tItem[i].strName <<
 						"\t종류 : " << tPlayer.tInventory.tItem[i].strTypeName << endl;
 					cout << "공격력 : " << tPlayer.tInventory.tItem[i].iMin << " - " <<
 						tPlayer.tInventory.tItem[i].iMax << endl;
@@ -731,7 +829,7 @@ int main()
 				cout << tPlayer.tInventory.iItemCount + 1 << ". 뒤로가기" << endl;
 				cout << "장착할 아이템을 선택하세요 : ";
 				cin >> iMenu;
-
+				
 				if (cin.fail())
 				{
 					cin.clear();
