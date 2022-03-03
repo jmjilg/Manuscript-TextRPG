@@ -75,6 +75,7 @@ enum EQUIP
 #define INVENTORY_MAX		20
 #define STORE_WEAPON_MAX	3
 #define STORE_ARMOR_MAX		3
+#define LEVEL_MAX			10
 
 struct _tagItem
 {
@@ -132,9 +133,55 @@ struct _tagMonster
 	int		iGoldMax;
 };
 
+struct _tagLevelUpStatus
+{
+	int iAttackMin;
+	 int iAttackMax;
+	int iArmorMin;
+	int iArmorMax;
+	int iHPMin;
+	int iHPMax;
+	int iMPMin;
+	int iMPMax;
+};
+
 int main()
 {
 	srand((unsigned int)time(0));
+
+	// 레벨업에 필요한 경험치 목록을 만든다.
+	const int	iLevelUpExp[LEVEL_MAX] = {4000, 10000, 20000, 35000, 50000, 70000, 100000, 150000, 200000, 400000};
+
+	// JOB_END 는 4이다. 그런데 직업은 3개이므로 -1을 해주어서 배열을 각 직업별로
+	// 생성하도록 한다.
+	_tagLevelUpStatus	iLvUpTable[JOB_END - 1] = {};
+
+	iLvUpTable[JOB_KNIGHT - 1].iAttackMin = 4;
+	iLvUpTable[JOB_KNIGHT - 1].iAttackMax = 10;
+	iLvUpTable[JOB_KNIGHT - 1].iArmorMin = 8;
+	iLvUpTable[JOB_KNIGHT - 1].iArmorMax = 16;
+	iLvUpTable[JOB_KNIGHT - 1].iHPMin = 50;
+	iLvUpTable[JOB_KNIGHT - 1].iHPMax = 100;
+	iLvUpTable[JOB_KNIGHT - 1].iMPMin = 10;
+	iLvUpTable[JOB_KNIGHT - 1].iMPMax = 20;
+
+	iLvUpTable[JOB_ARCHER - 1].iAttackMin = 10;
+	iLvUpTable[JOB_ARCHER - 1].iAttackMax = 15;
+	iLvUpTable[JOB_ARCHER - 1].iArmorMin = 5;
+	iLvUpTable[JOB_ARCHER - 1].iArmorMax = 10;
+	iLvUpTable[JOB_ARCHER - 1].iHPMin = 30;
+	iLvUpTable[JOB_ARCHER - 1].iHPMax = 60;
+	iLvUpTable[JOB_ARCHER - 1].iMPMin = 30;
+	iLvUpTable[JOB_ARCHER - 1].iMPMax = 50;
+
+	iLvUpTable[JOB_WIZARD - 1].iAttackMin = 15;
+	iLvUpTable[JOB_WIZARD - 1].iAttackMax = 20;
+	iLvUpTable[JOB_WIZARD - 1].iArmorMin = 3;
+	iLvUpTable[JOB_WIZARD - 1].iArmorMax = 7;
+	iLvUpTable[JOB_WIZARD - 1].iHPMin = 20;
+	iLvUpTable[JOB_WIZARD - 1].iHPMax = 40;
+	iLvUpTable[JOB_WIZARD - 1].iMPMin = 50;
+	iLvUpTable[JOB_WIZARD - 1].iMPMax = 100;
 
 	// 게임을 시작할때 플레이어 정보를 설정하게 한다.
 	_tagPlayer	tPlayer = {};
@@ -401,7 +448,7 @@ int main()
 					cout << "이름 : " << tPlayer.strName << "\t직업 : " <<
 						tPlayer.strJobName << endl;
 					cout << "레벨 : " << tPlayer.iLevel << "\t경험치 : " <<
-						tPlayer.iExp << endl;
+						tPlayer.iExp <<" / "<<iLevelUpExp[tPlayer.iLevel-1] << endl;
 
 					// 무기를 장착하고 있을 경우 공격력에 무기공격력을 추가하여 출력한다.
 					if (tPlayer.bEquip[EQ_WEAPON] == true)
@@ -525,6 +572,38 @@ int main()
 							
 							tMonster.iHP = tMonster.iHPMax;
 							tMonster.iMP = tMonster.iMPMax;
+
+							// 레벨업을 했는지 체크해본다.
+							if (tPlayer.iExp >= iLevelUpExp[tPlayer.iLevel - 1])
+							{
+								// 플레이어 경험치를 레벨업에 필요한 경험치만큼 차감한다.
+								tPlayer.iExp -= iLevelUpExp[tPlayer.iLevel - 1];
+
+								// 레벨을 증가시킨다.
+								++tPlayer.iLevel;
+
+								cout << " 레벨업 하였습니다." << endl;
+
+								// 능력치를 상승시킨다.
+								// 직업 인덱스를 구한다.
+								int iJobIndex = tPlayer.eJob - 1;
+								int iHPUp = rand() % (iLvUpTable[iJobIndex].iHPMax - iLvUpTable[iJobIndex].iHPMin + 1) +
+									iLvUpTable[iJobIndex].iHPMin;
+								int iMPUp = rand() % (iLvUpTable[iJobIndex].iMPMax - iLvUpTable[iJobIndex].iMPMin + 1) +
+									iLvUpTable[iJobIndex].iMPMin;
+							
+								tPlayer.iAttackMin += iLvUpTable[iJobIndex].iAttackMin;
+								tPlayer.iAttackMax += iLvUpTable[iJobIndex].iAttackMax;
+								tPlayer.iArmorMin += iLvUpTable[iJobIndex].iArmorMin;
+								tPlayer.iArmorMax += iLvUpTable[iJobIndex].iArmorMax;
+
+								tPlayer.iHPMax += iHPUp;
+								tPlayer.iMPMax += iMPUp;
+
+								//체력과 마나를 회복시킨다.
+								tPlayer.iHP = tPlayer.iHPMax;
+								tPlayer.iMP = tPlayer.iMPMax;
+							}
 
 							system("pause");
 							break;
@@ -693,7 +772,7 @@ int main()
 						{
 							cout << i + 1 << ". 이름 : " << tStoreArmor[i].strName <<
 								"\t종류 : " << tStoreArmor[i].strTypeName << endl;
-							cout << "공격력 : " << tStoreArmor[i].iMin << " - " <<
+							cout << "방어력 : " << tStoreArmor[i].iMin << " - " <<
 								tStoreArmor[i].iMax << endl;
 							cout << "판매가격 : " << tStoreArmor[i].iPrice <<
 								"\t구매가격 : " << tStoreArmor[i].iSell << endl;
@@ -768,7 +847,7 @@ int main()
 				cout << "이름 : " << tPlayer.strName << "\t직업 : " <<
 					tPlayer.strJobName << endl;
 				cout << "레벨 : " << tPlayer.iLevel << "\t경험치 : " <<
-					tPlayer.iExp << endl;
+					tPlayer.iExp << " / " << iLevelUpExp[tPlayer.iLevel - 1] << endl;
 				
 				// 무기를 장착하고 있을 경우 공격력에 무기공격력을 추가하여 출력한다.
 				if (tPlayer.bEquip[EQ_WEAPON] == true)
